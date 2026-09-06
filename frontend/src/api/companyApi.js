@@ -1,0 +1,16 @@
+import api from './axios'
+
+export const getCompanyProfile = () => api.get('/companies/profile')
+export const updateCompanyProfile = (payload) => api.put('/companies/profile', payload)
+export const getCompanyDashboard = () => api.get('/companies/dashboard')
+export const getCompanyInternships = () => api.get('/companies/internships')
+export const createCompanyInternship = (payload) => api.post('/companies/internships', payload)
+export const updateCompanyInternship = (id, payload) => api.put(`/companies/internships/${id}`, payload)
+export const closeCompanyInternship = (id) => api.delete(`/companies/internships/${id}`)
+export const getCompanyJobs = () => api.get('/companies/jobs')
+export const createCompanyJob = (payload) => api.post('/companies/jobs', payload)
+export const updateCompanyJob = (id, payload) => api.put(`/companies/jobs/${id}`, payload)
+export const closeCompanyJob = (id) => api.delete(`/companies/jobs/${id}`)
+export const getCompanyApplications = () => api.get('/companies/applications')
+export const getCompanyApplication = (id) => api.get(`/companies/applications/${id}`)
+export const updateCompanyApplicationStatus = (id, status) => api.put(`/companies/applications/${id}/status`, { status })

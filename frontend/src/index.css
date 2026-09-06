@@ -1,0 +1,156 @@
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+/* =========================================================
+   DESIGN TOKENS — Academia–Industry Collaboration Portal
+   ========================================================= */
+:root {
+  /* Color */
+  --aic-ink: #12172B;          /* primary text */
+  --aic-ink-soft: #4B5170;     /* secondary text */
+  --aic-indigo: #3F3DF2;       /* primary brand */
+  --aic-indigo-deep: #2A28C4;  /* hover/active */
+  --aic-indigo-tint: #F1F1FE;  /* section backgrounds */
+  --aic-teal: #0EA5A4;         /* AI / insight accent */
+  --aic-amber: #F5A524;        /* warnings / pending states */
+  --aic-green: #16A34A;        /* success / matched */
+  --aic-red: #DC2626;          /* errors / rejected */
+  --aic-line: #E6E8F0;         /* borders */
+  --aic-surface: #FFFFFF;
+  --aic-bg: #FAFAFE;
+
+  /* Typography */
+  --font-display: "Sora", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Segoe UI", sans-serif;
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  /* Shadow (single, restrained system — not stacked per-card) */
+  --shadow-sm: 0 1px 2px rgba(18, 23, 43, 0.06);
+  --shadow-md: 0 8px 24px -8px rgba(18, 23, 43, 0.14);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: var(--aic-bg);
+  color: var(--aic-ink);
+  font-family: var(--font-body);
+  scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  color: var(--aic-ink);
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--aic-indigo);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--aic-indigo-deep);
+}
+
+/* Focus visibility — accessibility floor, never removed */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--aic-indigo);
+  outline-offset: 2px;
+}
+
+.btn-aic-primary {
+  background: var(--aic-indigo);
+  border: 1px solid var(--aic-indigo);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  transition: background 0.15s var(--ease-standard), transform 0.15s var(--ease-standard);
+}
+.btn-aic-primary:hover {
+  background: var(--aic-indigo-deep);
+  border-color: var(--aic-indigo-deep);
+  color: #fff;
+}
+.btn-aic-outline {
+  background: transparent;
+  border: 1px solid var(--aic-line);
+  color: var(--aic-ink);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  transition: border-color 0.15s var(--ease-standard);
+}
+.btn-aic-outline:hover {
+  border-color: var(--aic-indigo);
+  color: var(--aic-indigo);
+}
+
+.aic-card {
+  background: var(--aic-surface);
+  border: 1px solid var(--aic-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.aic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+.aic-badge-ai {
+  background: rgba(14, 165, 164, 0.1);
+  color: var(--aic-teal);
+}
+.aic-badge-pending {
+  background: rgba(245, 165, 36, 0.12);
+  color: #92660c;
+}
+.aic-badge-success {
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--aic-green);
+}
+.aic-badge-danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--aic-red);
+}
+
+/* Reduced motion respected */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .dashboard-content {
+    margin-left: 260px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .dashboard-content {
+    margin-left: 0;
+  }
+}
