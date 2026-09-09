@@ -17,6 +17,7 @@ from models import (
     StudentProject,
     StudentSkill,
     User,
+    Skill,
 )
 from auth import get_current_user
 from storage import (
@@ -287,3 +288,177 @@ def update_profile(
         "message": "Student profile updated successfully",
         "profile": student
     }
+
+@router.get("/skills")
+def get_student_skills(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user["role"] != "student":
+        raise HTTPException(
+            status_code=403,
+            detail="Student access required"
+        )
+
+    student = db.query(Student).filter(
+        Student.user_id == current_user["user_id"]
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student profile not found"
+        )
+
+    skills = db.query(Skill).join(
+        StudentSkill,
+        StudentSkill.skill_id == Skill.id
+    ).filter(
+        StudentSkill.student_id == student.id
+    ).order_by(
+        Skill.name.asc()
+    ).all()
+
+    return {
+        "skills": [
+            {
+                "id": skill.id,
+                "name": skill.name,
+                "category": skill.category,
+            }
+            for skill in skills
+        ]
+    }
+
+
+class AddStudentSkill(BaseModel):
+    skill_id: int
+
+
+@router.post("/skills")
+def add_student_skill(
+    payload: AddStudentSkill,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user["role"] != "student":
+        raise HTTPException(
+            status_code=403,
+            detail="Student access required"
+        )
+
+    student = db.query(Student).filter(
+        Student.user_id == current_user["user_id"]
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student profile not found"
+        )
+
+    skill = db.query(Skill).filter(
+        Skill.id == payload.skill_id
+    ).first()
+
+    if not skill:
+        raise HTTPException(
+            status_code=404,
+            detail="Skill not found"
+        )
+
+    existing = db.query(StudentSkill).filter(
+        StudentSkill.student_id == student.id,
+        StudentSkill.skill_id == skill.id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="Skill already added"
+        )
+
+    student_skill = StudentSkill(
+        student_id=student.id,
+        skill_id=skill.id,
+    )
+
+    db.add(student_skill)
+    db.commit()
+
+    return {
+        "message": "Skill added successfully",
+        "skill": {
+            "id": skill.id,
+            "name": skill.name,
+            "category": skill.category,
+        },
+    }
+
+@router.get("/skills/available")
+def get_available_skills(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user["role"] != "student":
+        raise HTTPException(
+            status_code=403,
+            detail="Student access required"
+        )
+
+    skills = db.query(Skill).order_by(
+        Skill.name.asc()
+    ).all()
+
+    return {
+        "skills": [
+            {
+                "id": skill.id,
+                "name": skill.name,
+                "category": skill.category,
+            }
+            for skill in skills
+        ]
+    }
+
+
+@router.delete("/skills/{skill_id}")
+def remove_student_skill(
+    skill_id: int,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user["role"] != "student":
+        raise HTTPException(
+            status_code=403,
+            detail="Student access required"
+        )
+
+    student = db.query(Student).filter(
+        Student.user_id == current_user["user_id"]
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student profile not found"
+        )
+
+    student_skill = db.query(StudentSkill).filter(
+        StudentSkill.student_id == student.id,
+        StudentSkill.skill_id == skill_id
+    ).first()
+
+    if not student_skill:
+        raise HTTPException(
+            status_code=404,
+            detail="Skill is not associated with this student"
+        )
+
+    db.delete(student_skill)
+    db.commit()
+
+    return {
+        "message": "Skill removed successfully"
+    }
+

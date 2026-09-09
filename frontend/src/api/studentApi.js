@@ -29,8 +29,16 @@ export const getStudentDashboard = () => api.get('/students/dashboard')
 export const getStudentProfile = () => api.get('/students/profile')
 export const updateStudentProfile = (payload) => api.put('/students/profile', payload)
 
-// NOTE: Internships, jobs, skills, applications, certifications, and
-// portfolio endpoints are not yet implemented on the backend. Add
-// functions here as soon as those routes exist — do not stub them
-// with fake network calls. Pages that need this data currently render
-// a clearly-labeled "not connected yet" empty state (see EmptyState).
+export const getStudentSkills = () =>
+	api.get('/students/skills')
+
+export const addStudentSkill = (skillId) =>
+	api.post('/students/skills', {
+		skill_id: skillId,
+	})
+
+export const removeStudentSkill = (skillId) =>
+	api.delete(`/students/skills/${skillId}`)
+
+export const getAvailableSkills = () =>
+	api.get('/students/skills/available')
