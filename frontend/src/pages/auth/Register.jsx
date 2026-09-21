@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext.jsx'
 const ROLES = [
   { value: 'student', label: 'Student' },
   { value: 'academician', label: 'Academician' },
-  { value: 'industry', label: 'Industry' },
   { value: 'company', label: 'Company' },
 ]
 
@@ -59,7 +58,7 @@ export default function Register() {
   return (
     <div>
       <h1 className="h4 font-display mb-1">Create your account</h1>
-      <p className="text-secondary small mb-4">Join as a student, academician, or industry partner.</p>
+      <p className="text-secondary small mb-4">Join as a student, academician, or company.</p>
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mb-3">

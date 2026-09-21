@@ -25,7 +25,7 @@ def register(
             detail="Email already registered"
         )
 
-    if role not in ["student", "academician", "company", "industry", "admin"]:
+    if role not in ["student", "academician", "company", "admin"]:
         raise HTTPException(
             status_code=400,
             detail="Invalid role"

@@ -1,38 +1,81 @@
 import { useEffect, useMemo, useState } from 'react'
 import api from '../../api/axios'
+import Loading from '../../components/Loading'
+
+const ADMIN_JOBS_CACHE_KEY = 'admin_jobs'
 
 export default function AdminJobs() {
-  const [jobs, setJobs] = useState([])
+  const [jobs, setJobs] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem(
+        ADMIN_JOBS_CACHE_KEY
+      )
+      return cached ? JSON.parse(cached) : []
+    } catch {
+      return []
+    }
+  })
+
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [loading, setLoading] = useState(true)
+
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !sessionStorage.getItem(ADMIN_JOBS_CACHE_KEY)
+    } catch {
+      return true
+    }
+  })
+
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const loadJobs = async () => {
-      try {
+  const loadJobs = async ({ force = false } = {}) => {
+    try {
+      if (force) {
+        setRefreshing(true)
+      } else if (jobs.length === 0) {
         setLoading(true)
-        setError('')
-
-        const response = await api.get('/admin/jobs')
-        setJobs(response.data || [])
-      } catch (err) {
-        if (err.response?.status === 401) {
-          setError('Your session has expired. Please log in again.')
-        } else if (err.response?.status === 403) {
-          setError('Admin access is required to view jobs.')
-        } else {
-          setError(
-            err.response?.data?.detail ||
-            'Unable to load jobs.'
-          )
-        }
-      } finally {
-        setLoading(false)
       }
-    }
 
-    loadJobs()
+      setError('')
+
+      const response = await api.get('/admin/jobs')
+      const result = response.data || []
+
+      setJobs(result)
+
+      sessionStorage.setItem(
+        ADMIN_JOBS_CACHE_KEY,
+        JSON.stringify(result)
+      )
+    } catch (err) {
+      console.error('Admin jobs error:', err)
+
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.')
+      } else if (err.response?.status === 403) {
+        setError('Admin access is required to view jobs.')
+      } else {
+        setError(
+          err.response?.data?.detail ||
+          'Unable to load jobs.'
+        )
+      }
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    const hasCache = sessionStorage.getItem(
+      ADMIN_JOBS_CACHE_KEY
+    )
+
+    if (!hasCache) {
+      loadJobs()
+    }
   }, [])
 
   const filteredJobs = useMemo(() => {
@@ -60,6 +103,22 @@ export default function AdminJobs() {
       return matchesSearch && matchesStatus
     })
   }, [jobs, search, statusFilter])
+
+  const statusCounts = useMemo(() => {
+    return {
+      active: jobs.filter(
+        (job) => job.status?.toLowerCase() === 'active'
+      ).length,
+
+      published: jobs.filter(
+        (job) => job.status?.toLowerCase() === 'published'
+      ).length,
+
+      closed: jobs.filter(
+        (job) => job.status?.toLowerCase() === 'closed'
+      ).length,
+    }
+  }, [jobs])
 
   const formatDate = (date) => {
     if (!date) return '—'
@@ -91,41 +150,274 @@ export default function AdminJobs() {
     return 'bg-secondary-subtle text-secondary'
   }
 
+  if (loading) {
+    return (
+      <div className="container-fluid py-4">
+        <div className="d-flex justify-content-center align-items-center py-5">
+          <Loading />
+        </div>
+      </div>
+    )
+  }
+
+  if (error && jobs.length === 0) {
+    return (
+      <div className="container-fluid py-4">
+        <div className="aic-card p-4">
+          <div className="text-center py-4">
+
+            <div className="aic-page-icon mx-auto mb-3 bg-danger-subtle text-danger">
+              <i className="bi bi-exclamation-triangle"></i>
+            </div>
+
+            <h5 className="fw-bold mb-2">
+              Unable to load jobs
+            </h5>
+
+            <p className="text-muted mb-4">
+              {error}
+            </p>
+
+            <button
+              className="btn btn-aic-primary"
+              onClick={() => loadJobs()}
+            >
+              <i className="bi bi-arrow-clockwise me-2"></i>
+              Try Again
+            </button>
+
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container-fluid py-4">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-          <h2 className="fw-bold mb-1">Jobs</h2>
-          <p className="text-muted mb-0">
-            Monitor jobs posted by companies.
-          </p>
+
+      {/* Header */}
+      <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+        <div className="d-flex align-items-center gap-3">
+
+          <div className="aic-page-icon bg-primary-subtle text-primary">
+            <i className="bi bi-briefcase"></i>
+          </div>
+
+          <div>
+            <h2 className="font-display fw-bold mb-1">
+              Jobs
+            </h2>
+
+            <p className="text-muted mb-0">
+              Monitor jobs posted by companies.
+            </p>
+          </div>
+
         </div>
 
-        <span className="badge bg-primary-subtle text-primary fs-6">
-          {jobs.length} Job
-          {jobs.length !== 1 ? 's' : ''}
-        </span>
+        <button
+          className="btn btn-aic-outline"
+          onClick={() => loadJobs({ force: true })}
+          disabled={refreshing}
+        >
+          <i
+            className={`bi ${
+              refreshing
+                ? 'bi-arrow-repeat'
+                : 'bi-arrow-clockwise'
+            } me-2`}
+          ></i>
+
+          {refreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
+
       </div>
 
-      <div className="card border-0 shadow-sm">
-        <div className="card-body">
+      {/* Refresh error */}
+      {error && jobs.length > 0 && (
+        <div className="alert alert-warning d-flex align-items-center mb-4">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          <span>{error}</span>
+        </div>
+      )}
 
-          <div className="row g-3 mb-4">
-            <div className="col-12 col-md-6">
+      {/* Summary Cards */}
+      <div className="row g-3 mb-4">
+
+        <div className="col-12 col-md-6 col-xl-3">
+          <div className="aic-card p-3 h-100">
+
+            <div className="d-flex justify-content-between align-items-center">
+
+              <div>
+                <p className="text-muted small mb-2">
+                  Total Jobs
+                </p>
+
+                <h3 className="font-display fw-bold mb-0">
+                  {jobs.length}
+                </h3>
+              </div>
+
+              <div className="aic-stat-icon bg-primary-subtle text-primary">
+                <i className="bi bi-briefcase"></i>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <div className="col-12 col-md-6 col-xl-3">
+          <div className="aic-card p-3 h-100">
+
+            <div className="d-flex justify-content-between align-items-center">
+
+              <div>
+                <p className="text-muted small mb-2">
+                  Active
+                </p>
+
+                <h3 className="font-display fw-bold mb-0">
+                  {statusCounts.active}
+                </h3>
+              </div>
+
+              <div className="aic-stat-icon bg-success-subtle text-success">
+                <i className="bi bi-check-circle"></i>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <div className="col-12 col-md-6 col-xl-3">
+          <div className="aic-card p-3 h-100">
+
+            <div className="d-flex justify-content-between align-items-center">
+
+              <div>
+                <p className="text-muted small mb-2">
+                  Published
+                </p>
+
+                <h3 className="font-display fw-bold mb-0">
+                  {statusCounts.published}
+                </h3>
+              </div>
+
+              <div className="aic-stat-icon bg-info-subtle text-info">
+                <i className="bi bi-megaphone"></i>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <div className="col-12 col-md-6 col-xl-3">
+          <div className="aic-card p-3 h-100">
+
+            <div className="d-flex justify-content-between align-items-center">
+
+              <div>
+                <p className="text-muted small mb-2">
+                  Closed
+                </p>
+
+                <h3 className="font-display fw-bold mb-0">
+                  {statusCounts.closed}
+                </h3>
+              </div>
+
+              <div className="aic-stat-icon bg-danger-subtle text-danger">
+                <i className="bi bi-x-circle"></i>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      {/* Main Card */}
+      <div className="aic-card">
+
+        {/* Card Header */}
+        <div className="p-4 border-bottom">
+
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+
+            <div>
+              <h5 className="fw-bold mb-1">
+                Job Listings
+              </h5>
+
+              <p className="text-muted small mb-0">
+                Search and monitor job opportunities.
+              </p>
+            </div>
+
+            <div className="text-muted small">
+              Showing{' '}
+              <strong className="text-body">
+                {filteredJobs.length}
+              </strong>{' '}
+              of{' '}
+              <strong className="text-body">
+                {jobs.length}
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Filters */}
+        <div className="p-4 border-bottom">
+
+          <div className="row g-3">
+
+            <div className="col-12 col-lg-6">
+
               <label className="form-label fw-semibold">
                 Search Jobs
               </label>
 
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search title, company, location or skills..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <div className="input-group">
+
+                <span className="input-group-text bg-body">
+                  <i className="bi bi-search"></i>
+                </span>
+
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search title, company, location, salary or skills..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+
+                {search && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setSearch('')}
+                    title="Clear search"
+                  >
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                )}
+
+              </div>
+
             </div>
 
-            <div className="col-12 col-md-3">
+            <div className="col-12 col-md-6 col-lg-3">
+
               <label className="form-label fw-semibold">
                 Status
               </label>
@@ -133,41 +425,65 @@ export default function AdminJobs() {
               <select
                 className="form-select"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value)
+                }
               >
-                <option value="all">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="published">Published</option>
-                <option value="closed">Closed</option>
+                <option value="all">
+                  All Statuses
+                </option>
+
+                <option value="active">
+                  Active
+                </option>
+
+                <option value="published">
+                  Published
+                </option>
+
+                <option value="closed">
+                  Closed
+                </option>
               </select>
+
             </div>
+
+            <div className="col-12 col-md-6 col-lg-3 d-flex align-items-end">
+
+              <button
+                type="button"
+                className="btn btn-aic-outline w-100"
+                onClick={() => {
+                  setSearch('')
+                  setStatusFilter('all')
+                }}
+                disabled={
+                  !search &&
+                  statusFilter === 'all'
+                }
+              >
+                <i className="bi bi-funnel me-2"></i>
+                Clear Filters
+              </button>
+
+            </div>
+
           </div>
 
-          {loading && (
-            <div className="text-center py-5">
-              <div
-                className="spinner-border text-primary"
-                role="status"
-                aria-label="Loading"
-              />
+        </div>
 
-              <p className="text-muted mt-3 mb-0">
-                Loading jobs...
-              </p>
-            </div>
-          )}
+        {/* Table */}
+        <div>
 
-          {!loading && error && (
-            <div className="alert alert-danger mb-0">
-              {error}
-            </div>
-          )}
+          {filteredJobs.length === 0 ? (
 
-          {!loading && !error && filteredJobs.length === 0 && (
-            <div className="text-center py-5">
-              <div className="fs-1 mb-3">💼</div>
+            <div className="text-center py-5 px-3">
 
-              <h5 className="fw-semibold">
+              <div className="aic-page-icon mx-auto mb-3 bg-primary-subtle text-primary">
+                <i className="bi bi-briefcase"></i>
+              </div>
+
+              <h5 className="fw-bold">
                 {search || statusFilter !== 'all'
                   ? 'No jobs found'
                   : 'No jobs available'}
@@ -178,85 +494,120 @@ export default function AdminJobs() {
                   ? 'Try changing your search or status filter.'
                   : 'Jobs posted by companies will appear here.'}
               </p>
+
             </div>
-          )}
 
-          {!loading && !error && filteredJobs.length > 0 && (
-            <>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <span className="text-muted small">
-                  Showing {filteredJobs.length} of {jobs.length} jobs
-                </span>
-              </div>
+          ) : (
 
-              <div className="table-responsive">
-                <table className="table table-hover align-middle mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th>ID</th>
-                      <th>Job</th>
-                      <th>Company</th>
-                      <th>Location</th>
-                      <th>Salary</th>
-                      <th>Status</th>
-                      <th>Created</th>
-                    </tr>
-                  </thead>
+            <div className="table-responsive">
 
-                  <tbody>
-                    {filteredJobs.map((job) => (
-                      <tr key={job.id}>
-                        <td className="fw-semibold">
-                          #{job.id}
-                        </td>
+              <table className="table table-hover align-middle mb-0">
 
-                        <td>
-                          <div className="fw-semibold">
-                            {job.title || 'Untitled Job'}
+                <thead>
+                  <tr>
+                    <th className="ps-4">ID</th>
+                    <th>Job</th>
+                    <th>Company</th>
+                    <th>Location</th>
+                    <th>Salary</th>
+                    <th>Status</th>
+                    <th className="pe-4">
+                      Created
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  {filteredJobs.map((job) => (
+
+                    <tr key={job.id}>
+
+                      <td className="ps-4 text-muted">
+                        #{job.id}
+                      </td>
+
+                      <td>
+
+                        <div className="d-flex align-items-start gap-3">
+
+                          <div
+                            className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: 40,
+                              height: 40,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <i className="bi bi-briefcase"></i>
                           </div>
 
-                          {job.skills && (
-                            <div className="text-muted small mt-1">
-                              {job.skills}
+                          <div>
+
+                            <div className="fw-semibold">
+                              {job.title || 'Untitled Job'}
                             </div>
-                          )}
-                        </td>
 
-                        <td>
+                            {job.skills && (
+                              <div className="text-muted small mt-1">
+                                {job.skills}
+                              </div>
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      </td>
+
+                      <td>
+                        <span className="fw-medium">
                           {job.company_name || '—'}
-                        </td>
+                        </span>
+                      </td>
 
-                        <td>
+                      <td>
+                        <span className="text-muted">
                           {job.location || '—'}
-                        </td>
+                        </span>
+                      </td>
 
-                        <td>
-                          {job.salary || '—'}
-                        </td>
+                      <td>
+                        {job.salary || '—'}
+                      </td>
 
-                        <td>
-                          <span
-                            className={`badge ${getStatusClass(
-                              job.status
-                            )}`}
-                          >
-                            {job.status || 'Unknown'}
-                          </span>
-                        </td>
+                      <td>
 
-                        <td>
-                          {formatDate(job.created_at)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                        <span
+                          className={`badge ${getStatusClass(
+                            job.status
+                          )}`}
+                        >
+                          {job.status || 'Unknown'}
+                        </span>
+
+                      </td>
+
+                      <td className="pe-4 text-muted">
+                        {formatDate(job.created_at)}
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
           )}
 
         </div>
+
       </div>
+
     </div>
   )
 }

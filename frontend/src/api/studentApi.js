@@ -32,6 +32,9 @@ export const updateStudentProfile = (payload) => api.put('/students/profile', pa
 export const getStudentSkills = () =>
 	api.get('/students/skills')
 
+export const getResumeSkills = () =>
+  api.get('/students/skills/resume')
+
 export const addStudentSkill = (skillId) =>
 	api.post('/students/skills', {
 		skill_id: skillId,
@@ -42,3 +45,21 @@ export const removeStudentSkill = (skillId) =>
 
 export const getAvailableSkills = () =>
 	api.get('/students/skills/available')
+
+export const getStudentCertifications = () =>
+        api.get('/students/certifications')
+
+export const addStudentCertification = (payload) =>
+        api.post('/students/certifications', payload)
+
+export const getStudentProjects = () =>
+        api.get('/students/projects')
+
+export const addStudentProject = (payload) =>
+        api.post('/students/projects', payload)
+
+export const getStudentNotifications = () =>
+  api.get('/students/notifications')
+
+export const markStudentNotificationRead = (notificationId) =>
+  api.put(`/students/notifications/${notificationId}/read`)

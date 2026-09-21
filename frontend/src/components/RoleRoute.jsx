@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext.jsx'
 const DASHBOARD_BY_ROLE = {
   student: '/student/dashboard',
   academician: '/academician/dashboard',
-  industry: '/company/dashboard',
   company: '/company/dashboard',
   admin: '/admin/dashboard',
 }

@@ -149,7 +149,7 @@ export default function AppRoutes() {
           </Route>
 
           {/* Industry */}
-          <Route element={<RoleRoute allow={['company', 'industry']} />}>
+          <Route element={<RoleRoute allow={['company']} />}>
             <Route path="/company/dashboard" element={<IndustryDashboard />} />
             <Route path="/company/profile" element={<IndustryCompanyProfile />} />
             <Route path="/company/internships" element={<IndustryManageInternships />} />

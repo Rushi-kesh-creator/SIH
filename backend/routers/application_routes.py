@@ -7,7 +7,15 @@ from sqlalchemy.orm import Session
 
 from auth import get_current_user
 from database import get_db
-from models import Application, Company, Internship, Job, Student, User
+from models import (
+    Application,
+    Company,
+    Internship,
+    Job,
+    Student,
+    User,
+    Notification,
+)
 
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
@@ -59,6 +67,7 @@ def create_application(
     db: Session = Depends(get_db),
 ):
     student_id = _student_id(current_user, db)
+
     if (payload.job_id is None) == (payload.internship_id is None):
         raise HTTPException(
             status_code=422,
@@ -70,24 +79,39 @@ def create_application(
             Job.id == payload.job_id,
             func.lower(Job.status).in_(["active", "published"]),
         ).first()
+
         if opportunity is None:
-            raise HTTPException(status_code=404, detail="Active job not found")
+            raise HTTPException(
+                status_code=404,
+                detail="Active job not found",
+            )
+
         duplicate_filter = Application.job_id == payload.job_id
+
     else:
         opportunity = db.query(Internship).filter(
             Internship.id == payload.internship_id,
             func.lower(Internship.status).in_(["active", "published"]),
         ).first()
+
         if opportunity is None:
-            raise HTTPException(status_code=404, detail="Active internship not found")
+            raise HTTPException(
+                status_code=404,
+                detail="Active internship not found",
+            )
+
         duplicate_filter = Application.internship_id == payload.internship_id
 
     duplicate = db.query(Application.id).filter(
         Application.student_id == student_id,
         duplicate_filter,
     ).first()
+
     if duplicate:
-        raise HTTPException(status_code=409, detail="You have already applied to this opportunity")
+        raise HTTPException(
+            status_code=409,
+            detail="You have already applied to this opportunity",
+        )
 
     application = Application(
         student_id=student_id,
@@ -96,9 +120,21 @@ def create_application(
         status="pending",
         created_at=datetime.now(timezone.utc),
     )
+
     db.add(application)
+    db.flush()
+
+    notification = Notification(
+        user_id=current_user["user_id"],
+        title="Application Submitted",
+        message=f"Your application for {opportunity.title} has been submitted successfully.",
+        notification_type="success",
+    )
+
+    db.add(notification)
     db.commit()
     db.refresh(application)
+
     return {
         "message": "Application submitted successfully",
         "application": {
@@ -109,7 +145,6 @@ def create_application(
             "created_at": application.created_at,
         },
     }
-
 
 @router.get("")
 def list_applications(

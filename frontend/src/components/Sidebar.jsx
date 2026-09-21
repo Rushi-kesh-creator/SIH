@@ -19,14 +19,6 @@ const NAV_ITEMS = {
     { to: '/student/notifications', label: 'Notifications', icon: 'bi-bell' },
     { to: '/student/settings', label: 'Settings', icon: 'bi-gear' },
   ],
-  industry: [
-    { to: '/company/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },
-    { to: '/company/profile', label: 'Company Profile', icon: 'bi-building' },
-    { to: '/company/internships', label: 'Internships', icon: 'bi-briefcase' },
-    { to: '/company/jobs', label: 'Jobs', icon: 'bi-suitcase-lg' },
-    { to: '/company/applications', label: 'Applications', icon: 'bi-send-check' },
-    { to: '/industry/settings', label: 'Settings', icon: 'bi-gear' },
-  ],
   company: [
     { to: '/company/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },
     { to: '/company/profile', label: 'Company Profile', icon: 'bi-building' },
@@ -37,8 +29,7 @@ const NAV_ITEMS = {
   academician: [
     { to: '/academician/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },
     { to: '/academician/profile', label: 'Profile', icon: 'bi-person' },
-    { to: '/academician/faculty-opportunities', label: 'Faculty Opportunities', icon: 'bi-mortarboard' },
-    { to: '/academician/research-collaboration', label: 'Research Collaboration', icon: 'bi-diagram-2' },
+    { to: '/academician/faculty-opportunities', label: 'Academic Programs', icon: 'bi-mortarboard' },
   ],
   admin: [
     { to: '/admin/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },
@@ -72,7 +63,7 @@ export default function Sidebar({ role, open, onClose, onLogout }) {
         />
       )}
       <aside
-        className={`bg-white border-end d-flex flex-column position-fixed position-lg-sticky top-0 start-0 h-100 ${
+        className={`portal-sidebar border-end d-flex flex-column position-fixed position-lg-sticky top-0 start-0 h-100 ${
           open ? '' : 'd-none d-lg-flex'
         }`}
         style={{

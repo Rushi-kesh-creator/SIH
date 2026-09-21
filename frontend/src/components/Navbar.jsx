@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext.jsx'
 const ROLE_HOME = {
   student: '/student/dashboard',
   academician: '/academician/dashboard',
-  industry: '/industry/dashboard',
   admin: '/admin/dashboard',
 }
 

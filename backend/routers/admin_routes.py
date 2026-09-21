@@ -8,7 +8,7 @@ from database import get_db
 from models import Application, Company, Internship, Job, Student, User,Skill,StudentSkill
 
 
-SUPPORTED_ROLES = {"student", "academician", "company", "industry", "admin"}
+SUPPORTED_ROLES = {"student", "academician", "company", "admin"}
 router = APIRouter(prefix="/admin", tags=["Administration"])
 
 

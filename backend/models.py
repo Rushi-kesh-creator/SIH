@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Text, Date
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, Date,Boolean,DateTime
 from sqlalchemy.sql import func
 
 from database import Base
+from datetime import datetime
 
 
 class User(Base):
@@ -107,3 +108,46 @@ class StudentProject(Base):
     description = Column(Text)
     technologies = Column(String(500))
     project_url = Column(String(500))
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String(50), default="info")
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class AcademicProgram(Base):
+    __tablename__ = "academic_programs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    academician_id = Column(Integer, nullable=False, index=True)
+
+    title = Column(String(200), nullable=False)
+    description = Column(Text)
+    skills = Column(String(500))
+    duration = Column(String(100))
+    provider = Column(String(160))
+    website = Column(String(500))
+
+    status = Column(String(50), default="active")
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class LearningRecommendation(Base):
+    __tablename__ = "learning_recommendations"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    academician_id = Column(Integer, nullable=False, index=True)
+    student_id = Column(Integer, nullable=False, index=True)
+
+    title = Column(String(200), nullable=False)
+    message = Column(Text)
+    skills = Column(String(500))
+
+    created_at = Column(DateTime, server_default=func.now())
+    

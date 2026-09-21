@@ -154,3 +154,80 @@ textarea:focus-visible,
     margin-left: 0;
   }
 }
+
+/* ================================
+   Student Settings - Dark Mode
+   ================================ */
+
+[data-theme="dark"] {
+  background-color: #121212;
+  color: #f1f1f1;
+}
+
+[data-theme="dark"] body {
+  background-color: #121212;
+  color: #f1f1f1;
+}
+
+[data-theme="dark"] .settings-page {
+  background-color: #121212;
+  color: #f1f1f1;
+}
+
+[data-theme="dark"] .settings-card {
+  background-color: #1e1e1e !important;
+  color: #f1f1f1;
+}
+
+[data-theme="dark"] .settings-card .text-muted {
+  color: #adb5bd !important;
+}
+
+[data-theme="dark"] .settings-card .border-bottom {
+  border-color: #3a3a3a !important;
+}
+
+/* =========================================
+   Portal Dark Mode
+   ========================================= */
+
+.portal-sidebar {
+  background-color: #ffffff;
+  color: #495057;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+[data-theme="dark"] .portal-sidebar {
+  background-color: #1e1e1e !important;
+  color: #f1f1f1;
+}
+
+[data-theme="dark"] .portal-sidebar .border-bottom,
+[data-theme="dark"] .portal-sidebar .border-top {
+  border-color: #3a3a3a !important;
+}
+
+[data-theme="dark"] .portal-sidebar .text-secondary {
+  color: #c8c8c8 !important;
+}
+
+[data-theme="dark"] .portal-sidebar .nav-link {
+  color: #c8c8c8;
+}
+
+[data-theme="dark"] .portal-sidebar .nav-link:hover {
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .portal-sidebar .nav-link[aria-current="page"] {
+  color: var(--aic-indigo) !important;
+}
+
+[data-theme="dark"] .portal-sidebar .fw-bold {
+  color: #f1f1f1;
+}
+
+[data-theme="dark"] .portal-sidebar .btn-close {
+  filter: invert(1);
+}
